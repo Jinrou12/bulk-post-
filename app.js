@@ -850,6 +850,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const formData = new FormData();
           formData.append('source', blob, 'photo.jpg');
           formData.append('caption', post.caption || '');
+          formData.append('published', 'true');
           formData.append('access_token', token);
 
           fetchOptions = {
@@ -864,6 +865,7 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({
               url: firstImg,
               caption: post.caption || '',
+              published: true,
               access_token: token
             })
           };
