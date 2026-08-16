@@ -803,21 +803,94 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.extraFileInput.value = '';
   });
 
-  // Execute Publishing a Post (Simulation or Facebook Graph API)
+  // Execute Publishing a Post (Real Facebook Graph API or Simulation)
   const executePublishPost = (post) => {
     post.status = 'publishing';
     renderPosts();
     logMessage(`កំពុងដំណើរការ ផុស Post #${state.posts.indexOf(post) + 1}...`, 'info');
 
+    const token = (state.settings.token || '').trim();
+    const pageId = (state.settings.pageId || '').trim();
+    const isRealMode = !state.settings.useSimulation && token && pageId;
+
+    if (isRealMode) {
+      logMessage(`[REAL POSTING] កំពុងផ្ញើទិន្នន័យទៅកាន់ Facebook Graph API (Page ID: ${pageId})...`, 'info');
+
+      // Check if post contains images
+      if (post.images && post.images.length > 0) {
+        // Post first image with caption to /photos
+        fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(pageId)}/photos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: post.images[0],
+            caption: post.caption || '',
+            access_token: token
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.id || data.post_id) {
+            const pubId = data.post_id || data.id;
+            post.status = 'published';
+            post.publishedId = pubId;
+            renderPosts();
+            logMessage(`[FB GRAPH API SUCCESS] ផុសរូបភាពបានជោគជ័យទៅកាន់ Facebook Page! ID: ${pubId}`, 'success');
+          } else {
+            post.status = 'draft';
+            renderPosts();
+            const errMsg = data.error ? data.error.message : 'Unknown Error';
+            logMessage(`[FB API ERROR] ${errMsg}`, 'error');
+            alert(`Facebook Graph API Error:\n${errMsg}\n\nសូមពិនិត្យមើល ៖\n1. ថាតើ Token មានសិទ្ធិ pages_manage_posts ដែរឬទេ\n2. ថាតើ Token និង Page ID (${pageId}) ត្រូវគ្នាក្នុង Page Admin ដែរឬទេ`);
+          }
+        })
+        .catch(err => {
+          post.status = 'draft';
+          renderPosts();
+          logMessage(`[FB API NETWORK ERROR] ${err.message}`, 'error');
+        });
+      } else {
+        // Text-only feed post
+        fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(pageId)}/feed`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: post.caption || '',
+            access_token: token
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.id) {
+            post.status = 'published';
+            post.publishedId = data.id;
+            renderPosts();
+            logMessage(`[FB GRAPH API SUCCESS] ផុសបានជោគជ័យទៅកាន់ Facebook Page! Post ID: ${data.id}`, 'success');
+          } else {
+            post.status = 'draft';
+            renderPosts();
+            const errMsg = data.error ? data.error.message : 'Unknown Error';
+            logMessage(`[FB API ERROR] ${errMsg}`, 'error');
+            alert(`Facebook Graph API Error:\n${errMsg}\n\nសូមពិនិត្យមើល ៖\n1. ថាតើ Token មានសិទ្ធិ pages_manage_posts ដែរឬទេ\n2. ថាតើ Token និង Page ID (${pageId}) ត្រូវគ្នាក្នុង Page Admin ដែរឬទេ`);
+          }
+        })
+        .catch(err => {
+          post.status = 'draft';
+          renderPosts();
+          logMessage(`[FB API NETWORK ERROR] ${err.message}`, 'error');
+        });
+      }
+      return;
+    }
+
+    // Offline Simulation Mode Fallback
     setTimeout(() => {
-      // Direct Graph API or Offline Simulation logic
       const fakeFbPostId = '1000' + Math.floor(Math.random() * 1000000000);
       post.status = 'published';
       post.publishedId = fakeFbPostId;
       renderPosts();
-      logMessage(`[SUCCESS] ផុសបានជោគជ័យទៅកាន់ Facebook Page! Post ID: ${fakeFbPostId}`, 'success');
+      logMessage(`[SIMULATION SUCCESS] ផុសបានជោគជ័យ (Simulation Mode Active)! Post ID: ${fakeFbPostId}`, 'success');
 
-      // Auto-Share to Target Groups if enabled
       if (DOM.autoShareToGroups.checked && post.targetGroups && post.targetGroups.length > 0) {
         post.targetGroups.forEach(groupId => {
           const group = state.destinations.find(d => d.id === groupId);

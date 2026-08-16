@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="km">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,7 +9,9 @@
   <!-- Google Fonts: Kantumruy Pro & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Moul&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Moul&display=swap"
+    rel="stylesheet">
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -18,6 +21,7 @@
 
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
   <div class="app-container">
     <!-- Top Navigation Header -->
@@ -178,14 +182,16 @@
           </div>
 
           <div style="margin-bottom: 8px;">
-            <button class="btn btn-sm btn-primary" id="btnOpenAiCaptionModal" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #8b5cf6, #ec4899);">
+            <button class="btn btn-sm btn-primary" id="btnOpenAiCaptionModal"
+              style="width: 100%; justify-content: center; background: linear-gradient(135deg, #8b5cf6, #ec4899);">
               <i data-lucide="sparkles"></i>
               <span>✨ បង្កើត Caption ជាមួយ AI Assistant</span>
             </button>
           </div>
 
           <div class="form-group">
-            <textarea class="form-control" id="globalCaptionInput" placeholder="បញ្ចូល Caption សារគំរូ... អាចប្រើ {index} ឬ {date}"></textarea>
+            <textarea class="form-control" id="globalCaptionInput"
+              placeholder="បញ្ចូល Caption សារគំរូ... អាចប្រើ {index} ឬ {date}"></textarea>
           </div>
 
           <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
@@ -216,15 +222,18 @@
             <div class="filter-tabs">
               <button class="tab-btn active" data-filter="all">ទាំងអស់ (<span id="filterCountAll">0</span>)</button>
               <button class="tab-btn" data-filter="draft">Draft (<span id="filterCountDraft">0</span>)</button>
-              <button class="tab-btn" data-filter="scheduled">Scheduled (<span id="filterCountScheduled">0</span>)</button>
-              <button class="tab-btn" data-filter="published">Published (<span id="filterCountPublished">0</span>)</button>
+              <button class="tab-btn" data-filter="scheduled">Scheduled (<span
+                  id="filterCountScheduled">0</span>)</button>
+              <button class="tab-btn" data-filter="published">Published (<span
+                  id="filterCountPublished">0</span>)</button>
             </div>
           </div>
 
           <div class="toolbar-right">
             <div class="toolbar-search-box">
               <i data-lucide="search" class="search-icon"></i>
-              <input type="text" class="form-control form-control-sm" id="postSearchInput" placeholder="ស្វែងរក Caption..." />
+              <input type="text" class="form-control form-control-sm" id="postSearchInput"
+                placeholder="ស្វែងរក Caption..." />
             </div>
 
             <select class="form-control form-control-sm" id="postSortSelect" style="width: auto;">
@@ -266,7 +275,8 @@
         <div class="preview-body">
           <!-- Tab 1: Live Facebook Post Feed Card Preview -->
           <div class="tab-content" id="tabContentPreview">
-            <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between;">
+            <div
+              style="font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between;">
               <span>FACEBOOK FEED PREVIEW</span>
               <span id="previewPostNumberBadge" class="badge-page">Post #1</span>
             </div>
@@ -278,7 +288,8 @@
                   <div class="fb-avatar" id="fbPreviewAvatar">FB</div>
                   <div class="fb-user-details">
                     <h5 id="fbPreviewPageName">My Online Store</h5>
-                    <span><i data-lucide="globe" style="width:12px; height:12px;"></i> <span id="fbPreviewTime">Just now</span> • 🌐 Public</span>
+                    <span><i data-lucide="globe" style="width:12px; height:12px;"></i> <span id="fbPreviewTime">Just
+                        now</span> • 🌐 Public</span>
                   </div>
                 </div>
                 <i data-lucide="more-horizontal" style="color: var(--fb-card-subtext);"></i>
@@ -291,7 +302,8 @@
 
               <!-- Dynamic Photo Grid Container -->
               <div class="fb-photo-grid grid-1" id="fbPreviewPhotoGrid">
-                <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80" alt="Preview Photo" />
+                <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80"
+                  alt="Preview Photo" />
               </div>
 
               <!-- Auto Group Share Badge Preview -->
@@ -302,9 +314,12 @@
 
               <!-- Facebook Card Bottom Actions -->
               <div class="fb-card-actions">
-                <button class="fb-action-btn"><i data-lucide="thumbs-up" style="width: 16px; height: 16px;"></i> Like</button>
-                <button class="fb-action-btn"><i data-lucide="message-square" style="width: 16px; height: 16px;"></i> Comment</button>
-                <button class="fb-action-btn"><i data-lucide="share-2" style="width: 16px; height: 16px;"></i> Share</button>
+                <button class="fb-action-btn"><i data-lucide="thumbs-up" style="width: 16px; height: 16px;"></i>
+                  Like</button>
+                <button class="fb-action-btn"><i data-lucide="message-square" style="width: 16px; height: 16px;"></i>
+                  Comment</button>
+                <button class="fb-action-btn"><i data-lucide="share-2" style="width: 16px; height: 16px;"></i>
+                  Share</button>
               </div>
             </div>
           </div>
@@ -320,9 +335,11 @@
                 ប្រព័ន្ធនឹងរត់ពិនិត្យម៉ោង និង ផុស/Share ចូល Facebook តាមពេលវេលាដែលបានកំណត់។
               </p>
 
-              <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 14px;">
+              <div
+                style="background: var(--bg-input); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 14px;">
                 <div style="font-size: 0.78rem; color: var(--text-muted);">ប្រកាសផុសបន្ទាប់ (Next Post In):</div>
-                <div id="countdownTimer" style="font-size: 1.8rem; font-weight: 700; color: var(--text-highlight);">-- : -- : --</div>
+                <div id="countdownTimer" style="font-size: 1.8rem; font-weight: 700; color: var(--text-highlight);">-- :
+                  -- : --</div>
               </div>
 
               <div style="display: flex; gap: 10px;">
@@ -343,7 +360,8 @@
               <button class="btn btn-sm btn-secondary" id="btnClearLogs">Clear Logs</button>
             </div>
             <div class="log-console" id="logConsole">
-              <div class="log-entry"><span class="log-time">[SYSTEM]</span> Ready. Select posts or upload images to begin.</div>
+              <div class="log-entry"><span class="log-time">[SYSTEM]</span> Ready. Select posts or upload images to
+                begin.</div>
             </div>
           </div>
         </div>
@@ -359,7 +377,9 @@
     <div class="modal-card" style="max-width: 520px;">
       <div class="modal-header">
         <h3 style="display:flex;align-items:center;gap:8px;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#0866ff"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#0866ff">
+            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+          </svg>
           Facebook Login & API Settings
         </h3>
         <button class="btn-icon btn-secondary modal-close-btn">&times;</button>
@@ -375,13 +395,17 @@
           <div class="form-group" style="margin-bottom: 10px;">
             <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
               <span>🔑 Facebook App ID</span>
-              <a href="https://developers.facebook.com/apps/" target="_blank" style="font-size:0.75rem; color:var(--text-highlight); text-decoration:none;">+ បង្កើត App ID លើ FB Developer</a>
+              <a href="https://developers.facebook.com/apps/" target="_blank"
+                style="font-size:0.75rem; color:var(--text-highlight); text-decoration:none;">+ បង្កើត App ID លើ FB
+                Developer</a>
             </label>
-            <input type="text" class="form-control" id="fbAppIdInput" value="854470550953066" placeholder="បញ្ចូល FB App ID" />
+            <input type="text" class="form-control" id="fbAppIdInput" value="854470550953066"
+              placeholder="បញ្ចូល FB App ID" />
           </div>
 
           <!-- Inline Notice Banner -->
-          <div id="appIdWarningNotice" style="display:none; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; padding: 8px 12px; border-radius: 6px; font-size: 0.78rem; margin-bottom: 10px;">
+          <div id="appIdWarningNotice"
+            style="display:none; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; padding: 8px 12px; border-radius: 6px; font-size: 0.78rem; margin-bottom: 10px;">
             ⚠️ មិនទាន់មាន App ID ទេ! សូមបញ្ចូល App ID ឬ ចុច <strong>"⚡ Demo Login"</strong> ខាងក្រោម។
           </div>
 
@@ -389,10 +413,13 @@
           <div id="fbLoginLoggedOut">
             <div style="display: flex; gap: 8px;">
               <button class="btn-fb-login" id="btnFBLogin" style="flex: 2;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                </svg>
                 Continue with Facebook
               </button>
-              <button class="btn btn-secondary" id="btnDemoFBLogin" style="flex: 1; font-size:0.82rem;" title="Login សាកល្បងភ្លាមៗដោយមិនបាច់ App ID">
+              <button class="btn btn-secondary" id="btnDemoFBLogin" style="flex: 1; font-size:0.82rem;"
+                title="Login សាកល្បងភ្លាមៗដោយមិនបាច់ App ID">
                 ⚡ Demo Login
               </button>
             </div>
@@ -424,13 +451,17 @@
 
         <!-- Manual Override & Direct Token Connect -->
         <details style="margin-bottom:12px;" open>
-          <summary style="font-size:0.85rem; font-weight:600; color:var(--text-highlight); cursor:pointer; padding:6px 0;">🔑 គ្រប់គ្រង Multi-Page Tokens (ដូរ Page 1-Click ភ្លាមៗ)</summary>
-          <div style="margin-top:10px; background: var(--bg-input); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
-            
+          <summary
+            style="font-size:0.85rem; font-weight:600; color:var(--text-highlight); cursor:pointer; padding:6px 0;">🔑
+            គ្រប់គ្រង Multi-Page Tokens (ដូរ Page 1-Click ភ្លាមៗ)</summary>
+          <div
+            style="margin-top:10px; background: var(--bg-input); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+
             <!-- Active Page Token Form -->
             <div class="form-group">
               <label class="form-label">Page / User Access Token</label>
-              <input type="password" class="form-control" id="tokenInput" placeholder="EAAM... ឬ EAAG... បញ្ចូល Access Token នៅទីនេះ" />
+              <input type="password" class="form-control" id="tokenInput"
+                placeholder="EAAM... ឬ EAAG... បញ្ចូល Access Token នៅទីនេះ" />
             </div>
             <div class="form-group">
               <label class="form-label">Page ID</label>
@@ -440,18 +471,22 @@
               <button class="btn btn-secondary btn-sm" id="btnConnectViaToken" style="flex: 2;">
                 ⚡ ភ្ជាប់តាមរយ: Token នេះ (Connect Token)
               </button>
-              <button class="btn btn-primary btn-sm" id="btnSavePageProfile" style="flex: 1; background:var(--fb-primary); border:none;">
+              <button class="btn btn-primary btn-sm" id="btnSavePageProfile"
+                style="flex: 1; background:var(--fb-primary); border:none;">
                 💾 រក្សាទុក Page នេះ
               </button>
             </div>
 
             <!-- Saved Pages Quick Switcher -->
             <div style="margin-top:12px;">
-              <label class="form-label" style="font-size:0.8rem; font-weight:700; color:var(--text-main); display:flex; justify-content:space-between; align-items:center;">
+              <label class="form-label"
+                style="font-size:0.8rem; font-weight:700; color:var(--text-main); display:flex; justify-content:space-between; align-items:center;">
                 <span>📋 បញ្ជី Page ដែលបាន Save ទុក ៖</span>
-                <span id="savedPagesCount" style="font-size:0.75rem; color:var(--fb-secondary); font-weight:normal;">(0 Pages)</span>
+                <span id="savedPagesCount" style="font-size:0.75rem; color:var(--fb-secondary); font-weight:normal;">(0
+                  Pages)</span>
               </label>
-              <div id="savedPagesContainer" style="display:flex; flex-direction:column; gap:6px; max-height:160px; overflow-y:auto; margin-top:6px;">
+              <div id="savedPagesContainer"
+                style="display:flex; flex-direction:column; gap:6px; max-height:160px; overflow-y:auto; margin-top:6px;">
                 <!-- Dynamically rendered saved page items -->
               </div>
             </div>
@@ -461,13 +496,18 @@
 
         <!-- Team & Testers Quick Guide Panel -->
         <details style="margin-bottom:12px;">
-          <summary style="font-size:0.82rem; color:var(--text-muted); cursor:pointer; padding:4px 0;">👥 របៀប Invite បុគ្គលិក/មិត្តភក្តិ ឱ្យ 1-Click Login បានដូចដើម</summary>
-          <div style="margin-top:8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); padding: 12px; border-radius: 8px; font-size:0.8rem; line-height:1.5;">
-            <div style="font-weight:700; color:var(--fb-secondary); margin-bottom:4px;">💡 ណែនាំសម្រាប់ Team Member Login ៖</div>
+          <summary style="font-size:0.82rem; color:var(--text-muted); cursor:pointer; padding:4px 0;">👥 របៀប Invite
+            បុគ្គលិក/មិត្តភក្តិ ឱ្យ 1-Click Login បានដូចដើម</summary>
+          <div
+            style="margin-top:8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); padding: 12px; border-radius: 8px; font-size:0.8rem; line-height:1.5;">
+            <div style="font-weight:700; color:var(--fb-secondary); margin-bottom:4px;">💡 ណែនាំសម្រាប់ Team Member
+              Login ៖</div>
             <ol style="margin:0; padding-left:18px; color:var(--text-main);">
-              <li>ចូលទៅកាន់ Meta Developer Roles ៖ <a href="https://developers.facebook.com/apps/854470550953066/roles/" target="_blank" style="color:var(--text-highlight);">Meta App Roles Dashboard</a></li>
+              <li>ចូលទៅកាន់ Meta Developer Roles ៖ <a href="https://developers.facebook.com/apps/854470550953066/roles/"
+                  target="_blank" style="color:var(--text-highlight);">Meta App Roles Dashboard</a></li>
               <li>ចុចប៊ូតុង <strong>Add Testers</strong> ➡️ វាយ ID / ឈ្មោះ FB របស់បុគ្គលិក</li>
-              <li>ពេលពួកគាត់ Accept ៖ ពួកគាត់អាចចុច <strong>Continue with Facebook</strong> 1-Click Auto-Load Pages បានភ្លាមៗ!</li>
+              <li>ពេលពួកគាត់ Accept ៖ ពួកគាត់អាចចុច <strong>Continue with Facebook</strong> 1-Click Auto-Load Pages
+                បានភ្លាមៗ!</li>
             </ol>
           </div>
         </details>
@@ -481,7 +521,8 @@
         </div>
 
         <!-- Status Banner -->
-        <div id="tokenStatusBanner" style="background:var(--bg-input); padding:10px 14px; border-radius:6px; border:1px solid var(--border-color); font-size:0.8rem; display:flex; align-items:center; gap:8px;">
+        <div id="tokenStatusBanner"
+          style="background:var(--bg-input); padding:10px 14px; border-radius:6px; border:1px solid var(--border-color); font-size:0.8rem; display:flex; align-items:center; gap:8px;">
           <span>💡</span>
           <span id="tokenStatusText">Offline Simulation Mode Active — គ្មាន API Token ត្រូវការ</span>
         </div>
@@ -526,7 +567,8 @@
         <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;" />
 
         <h4 style="font-size: 0.9rem; margin-bottom: 10px;">បញ្ជី Target Groups ទាំងអស់</h4>
-        <div id="modalGroupsList" style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+        <div id="modalGroupsList"
+          style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
           <!-- List rendered by JS -->
         </div>
       </div>
@@ -541,7 +583,9 @@
     <div class="modal-card" style="max-width: 580px;">
       <div class="modal-header">
         <h3 style="display:flex;align-items:center;gap:8px;">
-          <span style="background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✨ AI Khmer Caption Assistant</span>
+          <span
+            style="background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✨
+            AI Khmer Caption Assistant</span>
         </h3>
         <button class="btn-icon btn-secondary modal-close-btn">&times;</button>
       </div>
@@ -575,7 +619,8 @@
 
         <div class="form-group">
           <label class="form-label">សារ Caption ដែល AI បានបង្កើត (Generated Caption)</label>
-          <textarea class="form-control" id="aiGeneratedOutput" rows="6" placeholder="សារនឹងបង្ហាញនៅទីនេះ..."></textarea>
+          <textarea class="form-control" id="aiGeneratedOutput" rows="6"
+            placeholder="សារនឹងបង្ហាញនៅទីនេះ..."></textarea>
         </div>
       </div>
       <div class="modal-footer" style="display: flex; gap: 10px;">
@@ -597,7 +642,7 @@
 
   <!-- Facebook SDK (loads async after page is ready) -->
   <script>
-    window.fbAsyncInit = function() {
+    window.fbAsyncInit = function () {
       var savedAppId = '854470550953066';
       try {
         var saved = localStorage.getItem('FB_AUTOPOSTER_PERSIST_STATE');
@@ -605,7 +650,7 @@
           var parsed = JSON.parse(saved);
           if (parsed.settings && parsed.settings.appId) savedAppId = parsed.settings.appId;
         }
-      } catch(e){}
+      } catch (e) { }
       window.FB_APP_ID = savedAppId;
 
       FB.init({
@@ -615,14 +660,14 @@
         version: 'v20.0'
       });
       // Check existing login status on page load
-      FB.getLoginStatus(function(response) {
+      FB.getLoginStatus(function (response) {
         if (window.handleFBStatusChange) {
           window.handleFBStatusChange(response);
         }
       });
     };
     // Load the FB SDK asynchronously
-    (function(d, s, id) {
+    (function (d, s, id) {
       var js, fjs = d.getElementsByTagName(s)[0];
       if (d.getElementById(id)) return;
       js = d.createElement(s); js.id = id;
@@ -631,4 +676,5 @@
     }(document, 'script', 'facebook-jssdk'));
   </script>
 </body>
+
 </html>
