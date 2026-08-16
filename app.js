@@ -830,109 +830,135 @@ document.addEventListener('DOMContentLoaded', () => {
     const isRealMode = !state.settings.useSimulation && token && pageId;
 
     if (isRealMode) {
-      logMessage(`[REAL POSTING] កំពុងផ្ញើទិន្នន័យទៅកាន់ Facebook Graph API (Page ID: ${pageId})...`, 'info');
-
-      // Check if post contains images
-      if (post.images && post.images.length > 0) {
-        const firstImg = post.images[0];
-        const isDataUrl = firstImg.startsWith('data:');
-
-        let fetchOptions = {};
+      logMessage(`[REAL POSTING] កំពុងផ្ញើទៅ Facebook Graph API (Page ID: ${pageId})...`, 'info');
+      // ── Multi-image helper: upload one photo as unpublished, return its id ──
+      const uploadPhotoUnpublished = (imgSrc) => {
+        const isDataUrl = imgSrc.startsWith('data:');
         if (isDataUrl) {
-          // Local Base64 Image: Send binary FormData (source field)
-          const blob = dataURItoBlob(firstImg);
-          if (!blob) {
-            alert('រូបភាពមានបញ្ហា មិនអាចប្រែក្លាយជា Format រូបភាពបានឡើយ!');
-            post.status = 'draft';
-            renderPosts();
-            return;
-          }
-          const formData = new FormData();
-          formData.append('source', blob, 'photo.jpg');
-          formData.append('caption', post.caption || '');
-          formData.append('published', 'true');
-          formData.append('access_token', token);
-
-          fetchOptions = {
-            method: 'POST',
-            body: formData
-          };
+          const blob = dataURItoBlob(imgSrc);
+          if (!blob) return Promise.reject(new Error('រូបភាពមានបញ្ហា មិនអាចប្រែក្លាយជា Format រូបភាព!'));
+          const fd = new FormData();
+          fd.append('source', blob, 'photo.jpg');
+          fd.append('published', 'false');
+          fd.append('access_token', token);
+          return fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(pageId)}/photos`, { method: 'POST', body: fd })
+            .then(r => r.json());
         } else {
-          // Remote Image URL: Send JSON (url field)
-          fetchOptions = {
+          return fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(pageId)}/photos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              url: firstImg,
-              caption: post.caption || '',
-              published: true,
-              access_token: token
+            body: JSON.stringify({ url: imgSrc, published: false, access_token: token })
+          }).then(r => r.json());
+        }
+      };
+
+      const handleApiError = (data, endpoint) => {
+        post.status = 'draft';
+        renderPosts();
+        const errMsg = data.error ? data.error.message : 'Unknown Error';
+        logMessage(`[FB API ERROR - ${endpoint}] ${errMsg}`, 'error');
+        if (errMsg.includes('publish_actions') || errMsg.includes('200')) {
+          alert(`Facebook API Error:\nToken នេះជា User Token មិនទាន់ជា Page Token ឡើយ!\n\n💡 ចូលទៅ FB Token API ➡️ Continue with Facebook ➡️ ជ្រើស Page ➡️ Save Settings!`);
+        } else {
+          alert(`Facebook Graph API Error:\n${errMsg}\n\nសូមពិនិត្យ Token & Page ID ក្នុង FB Token API!`);
+        }
+      };
+
+      if (post.images && post.images.length > 0) {
+        const images = post.images;
+
+        if (images.length === 1) {
+          // ── Single image: post directly to /photos with published=true ──
+          const firstImg = images[0];
+          const isDataUrl = firstImg.startsWith('data:');
+          let fetchOptions = {};
+
+          if (isDataUrl) {
+            const blob = dataURItoBlob(firstImg);
+            if (!blob) {
+              alert('រូបភាពមានបញ្ហា មិនអាចប្រែក្លាយជា Format រូបភាព!');
+              post.status = 'draft'; renderPosts(); return;
+            }
+            const fd = new FormData();
+            fd.append('source', blob, 'photo.jpg');
+            fd.append('caption', post.caption || '');
+            fd.append('published', 'true');
+            fd.append('access_token', token);
+            fetchOptions = { method: 'POST', body: fd };
+          } else {
+            fetchOptions = {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ url: firstImg, caption: post.caption || '', published: true, access_token: token })
+            };
+          }
+
+          fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(pageId)}/photos`, fetchOptions)
+            .then(r => r.json())
+            .then(data => {
+              if (data.id || data.post_id) {
+                post.status = 'published';
+                post.publishedId = data.post_id || data.id;
+                renderPosts();
+                logMessage(`[FB SUCCESS] ផុសរូបភាព ១ ចំនួន បានជោគជ័យ! ID: ${post.publishedId}`, 'success');
+              } else { handleApiError(data, '/photos single'); }
             })
-          };
+            .catch(err => { post.status = 'draft'; renderPosts(); logMessage(`[FB NETWORK ERROR] ${err.message}`, 'error'); });
+
+        } else {
+          // ── Multiple images: upload all as unpublished → create one feed post ──
+          logMessage(`[MULTI-PHOTO] កំពុង Upload រូបភាព ${images.length} ចំនួន...`, 'info');
+
+          Promise.all(images.map(img => uploadPhotoUnpublished(img)))
+            .then(results => {
+              const failedIdx = results.findIndex(r => r.error || !r.id);
+              if (failedIdx !== -1) {
+                const errMsg = results[failedIdx].error ? results[failedIdx].error.message : 'Upload failed';
+                handleApiError({ error: { message: errMsg } }, `/photos unpublished[${failedIdx}]`);
+                return;
+              }
+
+              logMessage(`[MULTI-PHOTO] Upload រូបភាព ${images.length} ចំនួន រួចរាល់! កំពុង Post ទៅ Feed...`, 'info');
+
+              const attachedMedia = results.map(r => ({ media_fbid: r.id }));
+
+              return fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(pageId)}/feed`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  message: post.caption || '',
+                  attached_media: attachedMedia,
+                  access_token: token
+                })
+              }).then(r => r.json());
+            })
+            .then(data => {
+              if (!data) return; // already handled error above
+              if (data.id) {
+                post.status = 'published';
+                post.publishedId = data.id;
+                renderPosts();
+                logMessage(`[FB SUCCESS] ផុសរូបភាព ${images.length} ចំនួន ក្នុង Post តែមួយ! ID: ${data.id}`, 'success');
+              } else { handleApiError(data, '/feed multi-photo'); }
+            })
+            .catch(err => { post.status = 'draft'; renderPosts(); logMessage(`[FB NETWORK ERROR] ${err.message}`, 'error'); });
         }
 
-        fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(pageId)}/photos`, fetchOptions)
-        .then(res => res.json())
-        .then(data => {
-          if (data.id || data.post_id) {
-            const pubId = data.post_id || data.id;
-            post.status = 'published';
-            post.publishedId = pubId;
-            renderPosts();
-            logMessage(`[FB GRAPH API SUCCESS] ផុសរូបភាពបានជោគជ័យទៅកាន់ Facebook Page! ID: ${pubId}`, 'success');
-          } else {
-            post.status = 'draft';
-            renderPosts();
-            const errMsg = data.error ? data.error.message : 'Unknown Error';
-            logMessage(`[FB API ERROR] ${errMsg}`, 'error');
-            
-            if (errMsg.includes('publish_actions') || errMsg.includes('200')) {
-              alert(`Facebook Graph API Notification:\nToken នេះជា User Token មិនទាន់ជា Page Token ឡើយ!\n\n💡 របៀបយក Page Access Token ៖\n1. ចូល Graph API Explorer (developers.facebook.com/tools/explorer)\n2. ត្រង់ប្រអប់ User or Page ➡️ ជ្រើសយក Page Access Token (វត្តខេមាវ័ន-បឹងស្នាយ)\n3. Copy Token នោះមក Paste ចូលប្រអប់ FB Token API ជាការស្រេច!`);
-            } else {
-              alert(`Facebook Graph API Error:\n${errMsg}\n\nសូមពិនិត្យមើល ៖\n1. ថាតើ Token មានសិទ្ធិ pages_manage_posts ដែរឬទេ\n2. ថាតើ Token និង Page ID (${pageId}) ត្រូវគ្នាក្នុង Page Admin ដែរឬទេ`);
-            }
-          }
-        })
-        .catch(err => {
-          post.status = 'draft';
-          renderPosts();
-          logMessage(`[FB API NETWORK ERROR] ${err.message}`, 'error');
-        });
       } else {
-        // Text-only feed post
+        // ── Text-only post ──
         fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(pageId)}/feed`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: post.caption || '',
-            access_token: token
+          body: JSON.stringify({ message: post.caption || '', access_token: token })
+        })
+          .then(r => r.json())
+          .then(data => {
+            if (data.id) {
+              post.status = 'published'; post.publishedId = data.id; renderPosts();
+              logMessage(`[FB SUCCESS] ផុស Text Post បានជោគជ័យ! Post ID: ${data.id}`, 'success');
+            } else { handleApiError(data, '/feed text'); }
           })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.id) {
-            post.status = 'published';
-            post.publishedId = data.id;
-            renderPosts();
-            logMessage(`[FB GRAPH API SUCCESS] ផុសបានជោគជ័យទៅកាន់ Facebook Page! Post ID: ${data.id}`, 'success');
-          } else {
-            post.status = 'draft';
-            renderPosts();
-            const errMsg = data.error ? data.error.message : 'Unknown Error';
-            logMessage(`[FB API ERROR] ${errMsg}`, 'error');
-
-            if (errMsg.includes('publish_actions') || errMsg.includes('200')) {
-              alert(`Facebook Graph API Notification:\nToken នេះជា User Token មិនទាន់ជា Page Token ឡើយ!\n\n💡 របៀបយក Page Access Token ៖\n1. ចូល Graph API Explorer (developers.facebook.com/tools/explorer)\n2. ត្រង់ប្រអប់ User or Page ➡️ ជ្រើសយក Page Access Token (វត្តខេមាវ័ន-បឹងស្នាយ)\n3. Copy Token នោះមក Paste ចូលប្រអប់ FB Token API ជាការស្រេច!`);
-            } else {
-              alert(`Facebook Graph API Error:\n${errMsg}\n\nសូមពិនិត្យមើល ៖\n1. ថាតើ Token មានសិទ្ធិ pages_manage_posts ដែរឬទេ\n2. ថាតើ Token និង Page ID (${pageId}) ត្រូវគ្នាក្នុង Page Admin ដែរឬទេ`);
-            }
-          }
-        })
-        .catch(err => {
-          post.status = 'draft';
-          renderPosts();
-          logMessage(`[FB API NETWORK ERROR] ${err.message}`, 'error');
-        });
+          .catch(err => { post.status = 'draft'; renderPosts(); logMessage(`[FB NETWORK ERROR] ${err.message}`, 'error'); });
       }
       return;
     }
