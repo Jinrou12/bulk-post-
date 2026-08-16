@@ -803,6 +803,22 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.extraFileInput.value = '';
   });
 
+  // Helper to convert base64 Data URI to binary Blob for Facebook Photo API
+  const dataURItoBlob = (dataURI) => {
+    try {
+      const byteString = atob(dataURI.split(',')[1]);
+      const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([ab], { type: mimeString });
+    } catch (e) {
+      return null;
+    }
+  };
+
   // Execute Publishing a Post (Real Facebook Graph API or Simulation)
   const executePublishPost = (post) => {
     post.status = 'publishing';
@@ -818,16 +834,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Check if post contains images
       if (post.images && post.images.length > 0) {
-        // Post first image with caption to /photos
-        fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(pageId)}/photos`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: post.images[0],
-            caption: post.caption || '',
-            access_token: token
-          })
-        })
+        const firstImg = post.images[0];
+        const isDataUrl = firstImg.startsWith('data:');
+
+        let fetchOptions = {};
+        if (isDataUrl) {
+          // Local Base64 Image: Send binary FormData (source field)
+          const blob = dataURItoBlob(firstImg);
+          if (!blob) {
+            alert('រូបភាពមានបញ្ហា មិនអាចប្រែក្លាយជា Format រូបភាពបានឡើយ!');
+            post.status = 'draft';
+            renderPosts();
+            return;
+          }
+          const formData = new FormData();
+          formData.append('source', blob, 'photo.jpg');
+          formData.append('caption', post.caption || '');
+          formData.append('access_token', token);
+
+          fetchOptions = {
+            method: 'POST',
+            body: formData
+          };
+        } else {
+          // Remote Image URL: Send JSON (url field)
+          fetchOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: firstImg,
+              caption: post.caption || '',
+              access_token: token
+            })
+          };
+        }
+
+        fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(pageId)}/photos`, fetchOptions)
         .then(res => res.json())
         .then(data => {
           if (data.id || data.post_id) {
