@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
       appId: '854470550953066',
       token: '',
       pageId: '',
-      useSimulation: true
+      useSimulation: false
     },
     savedPages: [],
     activeFilter: 'all',
@@ -1530,14 +1530,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
       FB.login((response) => {
         if (response && response.authResponse) {
-          logMessage('Facebook Login successful! Fetching profile & pages...', 'success');
-          fetchFBUserData(response.authResponse.accessToken);
+          const userToken = response.authResponse.accessToken;
+          logMessage('Facebook Login successful! Auto-fetching Page Token...', 'success');
+
+          // Step 1: Get user profile
+          fetch(`https://graph.facebook.com/v20.0/me?fields=id,name&access_token=${encodeURIComponent(userToken)}`)
+            .then(r => r.json())
+            .then(userData => {
+              const savedPageId = (state.settings.pageId || '').trim();
+
+              if (savedPageId) {
+                // Step 2: Try to auto-fetch Page Token using Page ID + User Token
+                return fetch(`https://graph.facebook.com/v20.0/${savedPageId}?fields=access_token,name&access_token=${encodeURIComponent(userToken)}`)
+                  .then(r => r.json())
+                  .then(pageData => {
+                    if (pageData && pageData.access_token) {
+                      // ✅ Got Page Token automatically!
+                      state.settings.token = pageData.access_token;
+                      state.settings.useSimulation = false;
+                      if (DOM.useSimulationMode) DOM.useSimulationMode.checked = false;
+                      updateFBLoginUI(userData, [{ id: savedPageId, name: pageData.name || 'Facebook Page', access_token: pageData.access_token }]);
+                      saveStateToLocalStorage();
+                      logMessage(`✅ Auto-fetched Page Token ជោគជ័យ! Page: ${pageData.name || savedPageId}`, 'success');
+                    } else {
+                      // Page token fetch failed → use User Token as fallback
+                      state.settings.token = userToken;
+                      state.settings.useSimulation = false;
+                      if (DOM.useSimulationMode) DOM.useSimulationMode.checked = false;
+                      updateFBLoginUI(userData, [{ id: savedPageId, name: 'Facebook Page', access_token: userToken }]);
+                      saveStateToLocalStorage();
+                      logMessage(`⚠️ Connected as User. សូម Copy Page Token ពី Graph API Explorer ដើម្បី Post ជា Page Admin!`, 'warning');
+                    }
+                  });
+              } else {
+                // No saved Page ID → try /me/accounts to list all pages
+                return fetch(`https://graph.facebook.com/v20.0/me/accounts?fields=id,name,access_token&access_token=${encodeURIComponent(userToken)}`)
+                  .then(r => r.json())
+                  .then(accts => {
+                    const pages = (accts && accts.data) ? accts.data : [];
+                    if (pages.length > 0) {
+                      const firstPage = pages[0];
+                      state.settings.token  = firstPage.access_token;
+                      state.settings.pageId = firstPage.id;
+                      state.settings.useSimulation = false;
+                      if (DOM.useSimulationMode) DOM.useSimulationMode.checked = false;
+                      if (DOM.pageIdInput) DOM.pageIdInput.value = firstPage.id;
+                      updateFBLoginUI(userData, pages);
+                      saveStateToLocalStorage();
+                      logMessage(`✅ Auto-fetched Pages: ${pages.length} Page(s). ប្រើ Page: ${firstPage.name}`, 'success');
+                    } else {
+                      state.settings.token = userToken;
+                      state.settings.useSimulation = false;
+                      if (DOM.useSimulationMode) DOM.useSimulationMode.checked = false;
+                      updateFBLoginUI(userData, []);
+                      saveStateToLocalStorage();
+                      logMessage('⚠️ Login ជោគជ័យ ប៉ុន្តែគ្មាន Pages! សូមបញ្ចូល Page ID ក្នុងប្រអប់ Page ID!', 'warning');
+                    }
+                  });
+              }
+            })
+            .catch(err => {
+              logMessage(`FB fetch error: ${err.message}`, 'error');
+            });
         } else {
-          logMessage('Facebook Login: សូមពិនិត្យមើល App ID របស់អ្នក ឬ ប្រើ Demo Login!', 'error');
+          logMessage('Facebook Login បរាជ័យ ឬ ត្រូវបានបោះបង់! សូមចុចប្រើ Token ផ្ទាល់ក្នុងប្រអប់ Token!', 'error');
         }
-      }, {
-        scope: 'public_profile,pages_show_list,pages_manage_posts,pages_read_engagement'
-      });
+      }, { scope: 'public_profile' });
     });
 
     // ---- Direct Access Token Connect Button ----
