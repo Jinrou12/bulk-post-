@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FB AutoPoster Pro - Facebook Bulk Poster & Group Scheduler</title>
+
+  <!-- Google Fonts: Kantumruy Pro & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Moul&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Facebook JavaScript SDK -->
+  <div id="fb-root"></div>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon"><i data-lucide="share-2"></i></div>
+        <div class="brand-text">
+          <h1>FB AutoPoster Pro</h1>
+          <span>កម្មវិធី ផុសរូប Bulk, កំណត់ Schedule & Share ចូល Facebook Group</span>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Counters -->
+      <div class="header-stats">
+        <div class="stat-item" title="ចំនួន Posts ទាំងអស់">
+          <i data-lucide="layers"></i> Posts: <strong id="statTotalPosts">0</strong>
+        </div>
+        <div class="stat-item" title="បានកំណត់ Schedule">
+          <i data-lucide="clock"></i> Scheduled: <strong id="statScheduled">0</strong>
+        </div>
+        <div class="stat-item" title="បាន ផុស រួចរាល់">
+          <i data-lucide="check-circle-2"></i> Published: <strong id="statPublished">0</strong>
+        </div>
+        <div class="stat-item" title="Target Groups & Pages">
+          <i data-lucide="users"></i> Groups: <strong id="statActiveGroups">0</strong>
+        </div>
+      </div>
+
+      <!-- User FB Profile Badge (shown after login) -->
+      <div class="fb-user-profile-badge" id="fbProfileBadge" style="display:none;">
+        <img id="fbProfileAvatar" src="" alt="avatar" />
+        <div>
+          <div id="fbProfileName" style="font-weight:700; font-size:0.88rem;"></div>
+          <div id="fbProfileStatus" style="font-size:0.72rem; color: var(--fb-secondary);">✓ Connected</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons Header -->
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-icon" id="btnToggleTheme" title="Switch Light/Dark Theme">
+          <i data-lucide="sun"></i>
+        </button>
+
+        <button class="btn btn-secondary" id="btnLoadDemo" title="ទាញយកទិន្នន័យគំរូសាកល្បង">
+          <i data-lucide="sparkles"></i>
+          <span>សាកល្បង Demo</span>
+        </button>
+
+        <button class="btn btn-secondary" id="btnManageGroups" title="គ្រប់គ្រង Facebook Pages & Groups">
+          <i data-lucide="users"></i>
+          <span>គ្រប់គ្រង Groups</span>
+        </button>
+
+        <button class="btn btn-secondary" id="btnSettings" title="កំណត់ Access Token / API Key">
+          <i data-lucide="key-round"></i>
+          <span>FB Token API</span>
+        </button>
+
+        <button class="btn btn-secondary" id="btnExportCampaign" title="Export Campaign ទៅជា JSON">
+          <i data-lucide="download"></i>
+          <span>Export</span>
+        </button>
+
+        <button class="btn btn-secondary" id="btnImportCampaign" title="Import Campaign ពី JSON File">
+          <i data-lucide="upload"></i>
+          <span>Import</span>
+        </button>
+        <input type="file" id="importCampaignFileInput" accept=".json" style="display: none;" />
+
+        <button class="btn btn-danger btn-icon" id="btnClearAllData" title="លុបទិន្នន័យទាំងអស់ & Reset">
+          <i data-lucide="rotate-ccw"></i>
+        </button>
+
+        <button class="btn btn-primary" id="btnStartScheduler">
+          <i data-lucide="play"></i>
+          <span>រត់ Schedule ស្វ័យប្រវត្តិ</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Grid Layout -->
+    <main class="app-body">
+      <!-- Sidebar Left: Controls, Upload & Scheduling Config -->
+      <aside class="sidebar-left">
+        <!-- 1. Bulk Image Upload Zone -->
+        <div class="card-box">
+          <div class="card-title">
+            <span><i data-lucide="upload-cloud"></i> 1. Upload រូបភាព Bulk</span>
+          </div>
+
+          <div class="dropzone" id="bulkDropzone">
+            <div class="dropzone-icon"><i data-lucide="image-plus"></i></div>
+            <h4>ទម្លាក់រូបភាពច្រើននៅទីនេះ</h4>
+            <p>ឬ ចុច ដើម្បីជ្រើសរើសរូបថត (១រូប = ១ Post ស្វ័យប្រវត្តិ)</p>
+            <input type="file" id="bulkFileInput" multiple accept="image/*" style="display: none;" />
+          </div>
+
+          <div style="margin-top: 10px;">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="autoSplitCheckbox" checked />
+              <span>បង្កើត 1 Post ក្នុងរូបភាព 1 ដោយស្វ័យប្រវត្តិ</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 2. Auto-Schedule Interval Generator -->
+        <div class="card-box">
+          <div class="card-title">
+            <span><i data-lucide="calendar-clock"></i> 2. រៀបចំ Schedule ស្វ័យប្រវត្តិ</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ថ្ងៃ/ម៉ោង ចាប់ផ្តើម ផុសដំបូង (Start Date & Time)</label>
+            <input type="datetime-local" class="form-control" id="scheduleStartTime" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ចន្លោះពេល ផុសបន្តបន្ទាប់ (Posting Interval)</label>
+            <select class="form-control" id="scheduleInterval">
+              <option value="15">រៀងរាល់ ១៥ នាទី (Every 15 mins)</option>
+              <option value="30" selected>រៀងរាល់ ៣០ នាទី (Every 30 mins)</option>
+              <option value="60">រៀងរាល់ ១ ម៉ោង (Every 1 Hour)</option>
+              <option value="120">រៀងរាល់ ២ ម៉ោង (Every 2 Hours)</option>
+              <option value="360">រៀងរាល់ ៦ ម៉ោង (Every 6 Hours)</option>
+              <option value="1440">រៀងរាល់ ១ ថ្ងៃ (Every 1 Day)</option>
+            </select>
+          </div>
+
+          <button class="btn btn-secondary" id="btnApplyAutoSchedule" style="width: 100%;">
+            <i data-lucide="wand-2"></i>
+            <span>កំណត់ Schedule លើ Posts ទាំងអស់</span>
+          </button>
+        </div>
+
+        <!-- 3. Target FB Group & Page Selection -->
+        <div class="card-box">
+          <div class="card-title">
+            <span><i data-lucide="share-2"></i> 3. ជ្រើសរើស Page/Group Target</span>
+            <button class="btn btn-sm btn-secondary" id="btnAddCustomGroupBtn">+ បន្ថែម</button>
+          </div>
+
+          <div class="destination-group-list" id="targetDestinationsList">
+            <!-- Dynamic Groups/Pages list will be rendered here -->
+          </div>
+
+          <div style="margin-top: 10px;">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="autoShareToGroups" checked />
+              <span>Auto-Share ចូល Groups ដែលបានជ្រើសរើស</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 4. Global Caption & Hashtag Template -->
+        <div class="card-box">
+          <div class="card-title">
+            <span><i data-lucide="message-square"></i> 4. កំណត់ Caption & Hashtag រួម</span>
+          </div>
+
+          <div style="margin-bottom: 8px;">
+            <button class="btn btn-sm btn-primary" id="btnOpenAiCaptionModal" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #8b5cf6, #ec4899);">
+              <i data-lucide="sparkles"></i>
+              <span>✨ បង្កើត Caption ជាមួយ AI Assistant</span>
+            </button>
+          </div>
+
+          <div class="form-group">
+            <textarea class="form-control" id="globalCaptionInput" placeholder="បញ្ចូល Caption សារគំរូ... អាចប្រើ {index} ឬ {date}"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
+            <button class="btn btn-sm btn-secondary hashtag-pill" data-tag="#khmer">#khmer</button>
+            <button class="btn btn-sm btn-secondary hashtag-pill" data-tag="#shop">#shop</button>
+            <button class="btn btn-sm btn-secondary hashtag-pill" data-tag="#trending">#trending</button>
+            <button class="btn btn-sm btn-secondary hashtag-pill" data-tag="#promotion">#promotion</button>
+          </div>
+
+          <button class="btn btn-secondary" id="btnApplyGlobalCaption" style="width: 100%;">
+            <i data-lucide="file-text"></i>
+            <span>ដាក់ Caption នេះលើ Posts ទាំងអស់</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Center Main Workspace: Bulk Posts Manager -->
+      <section class="main-content">
+        <!-- Toolbar Bar -->
+        <div class="workspace-toolbar">
+          <div class="toolbar-left">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="selectAllCheckbox" />
+              <span>ជ្រើសរើសទាំងអស់ (<span id="selectedCountText">0</span>)</span>
+            </label>
+
+            <!-- Filter Status Tabs -->
+            <div class="filter-tabs">
+              <button class="tab-btn active" data-filter="all">ទាំងអស់ (<span id="filterCountAll">0</span>)</button>
+              <button class="tab-btn" data-filter="draft">Draft (<span id="filterCountDraft">0</span>)</button>
+              <button class="tab-btn" data-filter="scheduled">Scheduled (<span id="filterCountScheduled">0</span>)</button>
+              <button class="tab-btn" data-filter="published">Published (<span id="filterCountPublished">0</span>)</button>
+            </div>
+          </div>
+
+          <div class="toolbar-right">
+            <div class="toolbar-search-box">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" class="form-control form-control-sm" id="postSearchInput" placeholder="ស្វែងរក Caption..." />
+            </div>
+
+            <select class="form-control form-control-sm" id="postSortSelect" style="width: auto;">
+              <option value="time_asc">⏱️ ម៉ោង: មុន ➜ ក្រោយ</option>
+              <option value="time_desc">⏱️ ម៉ោង: ក្រោយ ➜ មុន</option>
+              <option value="status">📌 តាម Status</option>
+            </select>
+
+            <button class="btn btn-danger btn-sm" id="btnDeleteSelected">
+              <i data-lucide="trash-2"></i> លុបដែលជ្រើសរើស
+            </button>
+            <button class="btn btn-success btn-sm" id="btnPublishSelected">
+              <i data-lucide="send"></i> ផុសភ្លាមៗ (Publish Now)
+            </button>
+          </div>
+        </div>
+
+        <!-- Posts Dynamic List Container -->
+        <div class="posts-grid" id="postsContainer">
+          <!-- Empty state and posts rendered dynamically by app.js -->
+        </div>
+      </section>
+
+      <!-- Sidebar Right: Realistic Facebook Feed Preview & Live Logs -->
+      <aside class="sidebar-right">
+        <!-- Tabs Header -->
+        <div class="preview-tabs">
+          <button class="preview-tab active" data-tab="preview">
+            <i data-lucide="eye"></i> Live FB Preview
+          </button>
+          <button class="preview-tab" data-tab="scheduler">
+            <i data-lucide="timer"></i> Scheduler Control
+          </button>
+          <button class="preview-tab" data-tab="logs">
+            <i data-lucide="terminal"></i> Activity Logs
+          </button>
+        </div>
+
+        <div class="preview-body">
+          <!-- Tab 1: Live Facebook Post Feed Card Preview -->
+          <div class="tab-content" id="tabContentPreview">
+            <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between;">
+              <span>FACEBOOK FEED PREVIEW</span>
+              <span id="previewPostNumberBadge" class="badge-page">Post #1</span>
+            </div>
+
+            <!-- Realistic Facebook Card -->
+            <div class="fb-feed-card">
+              <div class="fb-card-header">
+                <div class="fb-user-info">
+                  <div class="fb-avatar" id="fbPreviewAvatar">FB</div>
+                  <div class="fb-user-details">
+                    <h5 id="fbPreviewPageName">My Online Store</h5>
+                    <span><i data-lucide="globe" style="width:12px; height:12px;"></i> <span id="fbPreviewTime">Just now</span> • 🌐 Public</span>
+                  </div>
+                </div>
+                <i data-lucide="more-horizontal" style="color: var(--fb-card-subtext);"></i>
+              </div>
+
+              <!-- Caption Text -->
+              <div class="fb-card-caption" id="fbPreviewCaption">
+                រូបភាពគំរូសម្រាប់ Post... សូមជ្រើសរើស Post ណាមួយដើម្បីមើល Preview ពិតៗ។
+              </div>
+
+              <!-- Dynamic Photo Grid Container -->
+              <div class="fb-photo-grid grid-1" id="fbPreviewPhotoGrid">
+                <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80" alt="Preview Photo" />
+              </div>
+
+              <!-- Auto Group Share Badge Preview -->
+              <div class="fb-group-share-badge" id="fbPreviewGroupBadge">
+                <i data-lucide="share-2" style="width: 14px; height: 14px;"></i>
+                <span>នឹង Auto-Share ទៅកាន់ 2 Groups បន្ទាប់ពីផុស</span>
+              </div>
+
+              <!-- Facebook Card Bottom Actions -->
+              <div class="fb-card-actions">
+                <button class="fb-action-btn"><i data-lucide="thumbs-up" style="width: 16px; height: 16px;"></i> Like</button>
+                <button class="fb-action-btn"><i data-lucide="message-square" style="width: 16px; height: 16px;"></i> Comment</button>
+                <button class="fb-action-btn"><i data-lucide="share-2" style="width: 16px; height: 16px;"></i> Share</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Scheduler Controls & Live Countdown -->
+          <div class="tab-content" id="tabContentScheduler" style="display: none;">
+            <div class="card-box" style="margin-bottom: 16px;">
+              <h4 style="margin-bottom: 8px; display:flex; align-items:center; gap:8px;">
+                <i data-lucide="activity" style="color: var(--fb-primary);"></i>
+                <span>ស្ថានភាព Scheduler Engine</span>
+              </h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
+                ប្រព័ន្ធនឹងរត់ពិនិត្យម៉ោង និង ផុស/Share ចូល Facebook តាមពេលវេលាដែលបានកំណត់។
+              </p>
+
+              <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 14px;">
+                <div style="font-size: 0.78rem; color: var(--text-muted);">ប្រកាសផុសបន្ទាប់ (Next Post In):</div>
+                <div id="countdownTimer" style="font-size: 1.8rem; font-weight: 700; color: var(--text-highlight);">-- : -- : --</div>
+              </div>
+
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" id="btnToggleEngine" style="flex: 1;">
+                  <i data-lucide="play"></i> Start Auto Engine
+                </button>
+                <button class="btn btn-secondary" id="btnTriggerNow" style="flex: 1;">
+                  <i data-lucide="zap"></i> Post Next Now
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Execution Activity Terminal Logs -->
+          <div class="tab-content" id="tabContentLogs" style="display: none;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 0.85rem; font-weight: 700;">SYSTEM LOGS</span>
+              <button class="btn btn-sm btn-secondary" id="btnClearLogs">Clear Logs</button>
+            </div>
+            <div class="log-console" id="logConsole">
+              <div class="log-entry"><span class="log-time">[SYSTEM]</span> Ready. Select posts or upload images to begin.</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Hidden File Input for Adding Extra Media to a specific Post -->
+  <input type="file" id="extraFileInput" multiple accept="image/*" style="display: none;" />
+
+  <!-- Modal: FB Login & Credentials Setup -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 style="display:flex;align-items:center;gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#0866ff"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          Facebook Login & API Settings
+        </h3>
+        <button class="btn-icon btn-secondary modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Step 1: FB Login Button -->
+        <div id="fbLoginSection">
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
+            Login ជាមួយ Facebook Account របស់អ្នក ដើម្បី Auto-fill Access Token និង Pages List ។
+          </p>
+
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>🔑 Facebook App ID</span>
+              <a href="https://developers.facebook.com/apps/" target="_blank" style="font-size:0.75rem; color:var(--text-highlight); text-decoration:none;">+ បង្កើត App ID លើ FB Developer</a>
+            </label>
+            <input type="text" class="form-control" id="fbAppIdInput" value="854470550953066" placeholder="បញ្ចូល FB App ID" />
+          </div>
+
+          <!-- Inline Notice Banner -->
+          <div id="appIdWarningNotice" style="display:none; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; padding: 8px 12px; border-radius: 6px; font-size: 0.78rem; margin-bottom: 10px;">
+            ⚠️ មិនទាន់មាន App ID ទេ! សូមបញ្ចូល App ID ឬ ចុច <strong>"⚡ Demo Login"</strong> ខាងក្រោម។
+          </div>
+
+          <!-- FB Login State: Logged Out -->
+          <div id="fbLoginLoggedOut">
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-fb-login" id="btnFBLogin" style="flex: 2;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                Continue with Facebook
+              </button>
+              <button class="btn btn-secondary" id="btnDemoFBLogin" style="flex: 1; font-size:0.82rem;" title="Login សាកល្បងភ្លាមៗដោយមិនបាច់ App ID">
+                ⚡ Demo Login
+              </button>
+            </div>
+          </div>
+
+          <!-- FB Login State: Logged In Profile Card -->
+          <div id="fbLoginLoggedIn" style="display:none;">
+            <div class="fb-login-profile-card">
+              <img id="modalFbAvatar" src="" alt="" class="fb-login-avatar" />
+              <div class="fb-login-info">
+                <div id="modalFbName" style="font-weight:700;"></div>
+                <div id="modalFbEmail" style="font-size:0.78rem; color:var(--text-muted);"></div>
+                <div style="color:var(--fb-secondary); font-size:0.78rem; margin-top:2px;">✅ Connected to Facebook</div>
+              </div>
+              <button class="btn btn-sm btn-danger" id="btnFBLogout">Logout</button>
+            </div>
+          </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--border-color); margin:16px 0;" />
+
+        <!-- Step 2: Select Default Posting Page -->
+        <div class="form-group">
+          <label class="form-label">🏠 ជ្រើសរើស Default Facebook Page</label>
+          <select class="form-control" id="pagePickerSelect">
+            <option value="">— Login ជាមុន ដើម្បីមើលទំព័ររបស់អ្នក —</option>
+          </select>
+        </div>
+
+        <!-- Manual Override & Direct Token Connect -->
+        <details style="margin-bottom:12px;" open>
+          <summary style="font-size:0.82rem; color:var(--text-muted); cursor:pointer; padding:4px 0;">🔑 ឬ ភ្ជាប់តាមរយ: Access Token ដោយផ្ទាល់ (Direct Token)</summary>
+          <div style="margin-top:10px; background: var(--bg-input); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div class="form-group">
+              <label class="form-label">Page / User Access Token</label>
+              <input type="password" class="form-control" id="tokenInput" placeholder="EAAG... បញ្ចូល Access Token នៅទីនេះ" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Page ID</label>
+              <input type="text" class="form-control" id="pageIdInput" placeholder="1000849204..." />
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btnConnectViaToken" style="width: 100%;">
+              ⚡ ភ្ជាប់តាមរយ: Token នេះ (Connect Token)
+            </button>
+          </div>
+        </details>
+
+        <!-- Simulation Mode Toggle -->
+        <div class="form-group">
+          <label class="custom-checkbox">
+            <input type="checkbox" id="useSimulationMode" checked />
+            <span>ប្រើ Simulation Mode (ផុសសាកល្បងដោយគ្មាន API)</span>
+          </label>
+        </div>
+
+        <!-- Status Banner -->
+        <div id="tokenStatusBanner" style="background:var(--bg-input); padding:10px 14px; border-radius:6px; border:1px solid var(--border-color); font-size:0.8rem; display:flex; align-items:center; gap:8px;">
+          <span>💡</span>
+          <span id="tokenStatusText">Offline Simulation Mode Active — គ្មាន API Token ត្រូវការ</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close-btn">បិទ</button>
+        <button class="btn btn-primary" id="btnSaveSettings">រក្សាទុក Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Group & Page Manager -->
+  <div class="modal-backdrop" id="groupManagerModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i data-lucide="users" style="color: var(--fb-primary);"></i> គ្រប់គ្រង Target Groups & Pages</h3>
+        <button class="btn-icon btn-secondary modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">ឈ្មោះ Target Group/Page</label>
+          <input type="text" class="form-control" id="newGroupNameInput" placeholder="ឧ. ក្រុមទិញលក់ ភ្នំពេញ" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Group/Page ID លើ Facebook</label>
+          <input type="text" class="form-control" id="newGroupIdInput" placeholder="ឧ. 129481928401" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ប្រភេទ Target</label>
+          <select class="form-control" id="newGroupTypeInput">
+            <option value="group">Facebook Group</option>
+            <option value="page">Facebook Page</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary" id="btnAddGroupModalSubmit" style="width: 100%;">
+          + បន្ថែម Target ថ្មី
+        </button>
+
+        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;" />
+
+        <h4 style="font-size: 0.9rem; margin-bottom: 10px;">បញ្ជី Target Groups ទាំងអស់</h4>
+        <div id="modalGroupsList" style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+          <!-- List rendered by JS -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary modal-close-btn">រួចរាល់</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: AI Caption Assistant -->
+  <div class="modal-backdrop" id="aiCaptionModal">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 style="display:flex;align-items:center;gap:8px;">
+          <span style="background: linear-gradient(135deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✨ AI Khmer Caption Assistant</span>
+        </h3>
+        <button class="btn-icon btn-secondary modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">🎯 ជ្រើសរើសប្រភេទ Marketing Tone (Preset Template)</label>
+          <select class="form-control" id="aiToneSelect">
+            <option value="promo">🔥 ការបញ្ចុះតម្លៃពិសេស (Promotion & Discount)</option>
+            <option value="new_arrival">✨ ទំនិញទើបមកដល់ (New Arrival)</option>
+            <option value="urgency">⚡ ចំនួនមានកំណត់ / ជិតអស់ស្តុក (Urgency / Limited Stock)</option>
+            <option value="review">⭐ ការពិពណ៌នាគុណភាព (Product Quality / Review)</option>
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">ឈ្មោះផលិតផល / ទំនិញ</label>
+            <input type="text" class="form-control" id="aiProductName" placeholder="ឧ. កាបូបស្ពាយម៉ូដថ្មី" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">តម្លៃ / Discount (%)</label>
+            <input type="text" class="form-control" id="aiProductPrice" placeholder="ឧ. $15 (បញ្ចុះ 20%)" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">លេខទូរស័ព្ទ / ទំនាក់ទំនង (Contact/Telegram)</label>
+          <input type="text" class="form-control" id="aiContactInfo" placeholder="ឧ. 012 345 678 / @mytelegram" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">សារ Caption ដែល AI បានបង្កើត (Generated Caption)</label>
+          <textarea class="form-control" id="aiGeneratedOutput" rows="6" placeholder="សារនឹងបង្ហាញនៅទីនេះ..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 10px;">
+        <button class="btn btn-secondary" id="btnGenerateAiCaption">
+          <i data-lucide="sparkles"></i> បង្កើតសារ (Generate)
+        </button>
+        <button class="btn btn-primary" id="btnApplyAiToGlobal">
+          <i data-lucide="check"></i> ដាក់ចូល Global Caption
+        </button>
+        <button class="btn btn-success" id="btnApplyAiToAllPosts">
+          <i data-lucide="layers"></i> ដាក់លើ Posts ទាំងអស់
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core App Logic JavaScript -->
+  <script src="app.js"></script>
+
+  <!-- Facebook SDK (loads async after page is ready) -->
+  <script>
+    window.fbAsyncInit = function() {
+      var savedAppId = '854470550953066';
+      try {
+        var saved = localStorage.getItem('FB_AUTOPOSTER_PERSIST_STATE');
+        if (saved) {
+          var parsed = JSON.parse(saved);
+          if (parsed.settings && parsed.settings.appId) savedAppId = parsed.settings.appId;
+        }
+      } catch(e){}
+      window.FB_APP_ID = savedAppId;
+
+      FB.init({
+        appId: window.FB_APP_ID,
+        cookie: true,
+        xfbml: true,
+        version: 'v20.0'
+      });
+      // Check existing login status on page load
+      FB.getLoginStatus(function(response) {
+        if (window.handleFBStatusChange) {
+          window.handleFBStatusChange(response);
+        }
+      });
+    };
+    // Load the FB SDK asynchronously
+    (function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = 'https://connect.facebook.net/en_US/sdk.js';
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+  </script>
+</body>
+</html>
