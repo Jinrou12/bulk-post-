@@ -883,7 +883,12 @@ document.addEventListener('DOMContentLoaded', () => {
             renderPosts();
             const errMsg = data.error ? data.error.message : 'Unknown Error';
             logMessage(`[FB API ERROR] ${errMsg}`, 'error');
-            alert(`Facebook Graph API Error:\n${errMsg}\n\nសូមពិនិត្យមើល ៖\n1. ថាតើ Token មានសិទ្ធិ pages_manage_posts ដែរឬទេ\n2. ថាតើ Token និង Page ID (${pageId}) ត្រូវគ្នាក្នុង Page Admin ដែរឬទេ`);
+            
+            if (errMsg.includes('publish_actions') || errMsg.includes('200')) {
+              alert(`Facebook Graph API Notification:\nToken នេះជា User Token មិនទាន់ជា Page Token ឡើយ!\n\n💡 របៀបយក Page Access Token ៖\n1. ចូល Graph API Explorer (developers.facebook.com/tools/explorer)\n2. ត្រង់ប្រអប់ User or Page ➡️ ជ្រើសយក Page Access Token (វត្តខេមាវ័ន-បឹងស្នាយ)\n3. Copy Token នោះមក Paste ចូលប្រអប់ FB Token API ជាការស្រេច!`);
+            } else {
+              alert(`Facebook Graph API Error:\n${errMsg}\n\nសូមពិនិត្យមើល ៖\n1. ថាតើ Token មានសិទ្ធិ pages_manage_posts ដែរឬទេ\n2. ថាតើ Token និង Page ID (${pageId}) ត្រូវគ្នាក្នុង Page Admin ដែរឬទេ`);
+            }
           }
         })
         .catch(err => {
@@ -913,7 +918,12 @@ document.addEventListener('DOMContentLoaded', () => {
             renderPosts();
             const errMsg = data.error ? data.error.message : 'Unknown Error';
             logMessage(`[FB API ERROR] ${errMsg}`, 'error');
-            alert(`Facebook Graph API Error:\n${errMsg}\n\nសូមពិនិត្យមើល ៖\n1. ថាតើ Token មានសិទ្ធិ pages_manage_posts ដែរឬទេ\n2. ថាតើ Token និង Page ID (${pageId}) ត្រូវគ្នាក្នុង Page Admin ដែរឬទេ`);
+
+            if (errMsg.includes('publish_actions') || errMsg.includes('200')) {
+              alert(`Facebook Graph API Notification:\nToken នេះជា User Token មិនទាន់ជា Page Token ឡើយ!\n\n💡 របៀបយក Page Access Token ៖\n1. ចូល Graph API Explorer (developers.facebook.com/tools/explorer)\n2. ត្រង់ប្រអប់ User or Page ➡️ ជ្រើសយក Page Access Token (វត្តខេមាវ័ន-បឹងស្នាយ)\n3. Copy Token នោះមក Paste ចូលប្រអប់ FB Token API ជាការស្រេច!`);
+            } else {
+              alert(`Facebook Graph API Error:\n${errMsg}\n\nសូមពិនិត្យមើល ៖\n1. ថាតើ Token មានសិទ្ធិ pages_manage_posts ដែរឬទេ\n2. ថាតើ Token និង Page ID (${pageId}) ត្រូវគ្នាក្នុង Page Admin ដែរឬទេ`);
+            }
           }
         })
         .catch(err => {
