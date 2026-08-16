@@ -424,19 +424,51 @@
 
         <!-- Manual Override & Direct Token Connect -->
         <details style="margin-bottom:12px;" open>
-          <summary style="font-size:0.82rem; color:var(--text-muted); cursor:pointer; padding:4px 0;">🔑 ឬ ភ្ជាប់តាមរយ: Access Token ដោយផ្ទាល់ (Direct Token)</summary>
+          <summary style="font-size:0.85rem; font-weight:600; color:var(--text-highlight); cursor:pointer; padding:6px 0;">🔑 គ្រប់គ្រង Multi-Page Tokens (ដូរ Page 1-Click ភ្លាមៗ)</summary>
           <div style="margin-top:10px; background: var(--bg-input); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+            
+            <!-- Active Page Token Form -->
             <div class="form-group">
               <label class="form-label">Page / User Access Token</label>
-              <input type="password" class="form-control" id="tokenInput" placeholder="EAAG... បញ្ចូល Access Token នៅទីនេះ" />
+              <input type="password" class="form-control" id="tokenInput" placeholder="EAAM... ឬ EAAG... បញ្ចូល Access Token នៅទីនេះ" />
             </div>
             <div class="form-group">
               <label class="form-label">Page ID</label>
-              <input type="text" class="form-control" id="pageIdInput" placeholder="1000849204..." />
+              <input type="text" class="form-control" id="pageIdInput" placeholder="1498126193563744" />
             </div>
-            <button class="btn btn-secondary btn-sm" id="btnConnectViaToken" style="width: 100%;">
-              ⚡ ភ្ជាប់តាមរយ: Token នេះ (Connect Token)
-            </button>
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+              <button class="btn btn-secondary btn-sm" id="btnConnectViaToken" style="flex: 2;">
+                ⚡ ភ្ជាប់តាមរយ: Token នេះ (Connect Token)
+              </button>
+              <button class="btn btn-primary btn-sm" id="btnSavePageProfile" style="flex: 1; background:var(--fb-primary); border:none;">
+                💾 រក្សាទុក Page នេះ
+              </button>
+            </div>
+
+            <!-- Saved Pages Quick Switcher -->
+            <div style="margin-top:12px;">
+              <label class="form-label" style="font-size:0.8rem; font-weight:700; color:var(--text-main); display:flex; justify-content:space-between; align-items:center;">
+                <span>📋 បញ្ជី Page ដែលបាន Save ទុក ៖</span>
+                <span id="savedPagesCount" style="font-size:0.75rem; color:var(--fb-secondary); font-weight:normal;">(0 Pages)</span>
+              </label>
+              <div id="savedPagesContainer" style="display:flex; flex-direction:column; gap:6px; max-height:160px; overflow-y:auto; margin-top:6px;">
+                <!-- Dynamically rendered saved page items -->
+              </div>
+            </div>
+
+          </div>
+        </details>
+
+        <!-- Team & Testers Quick Guide Panel -->
+        <details style="margin-bottom:12px;">
+          <summary style="font-size:0.82rem; color:var(--text-muted); cursor:pointer; padding:4px 0;">👥 របៀប Invite បុគ្គលិក/មិត្តភក្តិ ឱ្យ 1-Click Login បានដូចដើម</summary>
+          <div style="margin-top:8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); padding: 12px; border-radius: 8px; font-size:0.8rem; line-height:1.5;">
+            <div style="font-weight:700; color:var(--fb-secondary); margin-bottom:4px;">💡 ណែនាំសម្រាប់ Team Member Login ៖</div>
+            <ol style="margin:0; padding-left:18px; color:var(--text-main);">
+              <li>ចូលទៅកាន់ Meta Developer Roles ៖ <a href="https://developers.facebook.com/apps/854470550953066/roles/" target="_blank" style="color:var(--text-highlight);">Meta App Roles Dashboard</a></li>
+              <li>ចុចប៊ូតុង <strong>Add Testers</strong> ➡️ វាយ ID / ឈ្មោះ FB របស់បុគ្គលិក</li>
+              <li>ពេលពួកគាត់ Accept ៖ ពួកគាត់អាចចុច <strong>Continue with Facebook</strong> 1-Click Auto-Load Pages បានភ្លាមៗ!</li>
+            </ol>
           </div>
         </details>
 

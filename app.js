@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
       pageId: '',
       useSimulation: true
     },
+    savedPages: [],
     activeFilter: 'all',
     activePreviewPostId: null,
     targetPostForExtraMedia: null,
@@ -194,12 +195,76 @@ document.addEventListener('DOMContentLoaded', () => {
       const dataToSave = {
         posts: state.posts,
         destinations: state.destinations,
-        settings: state.settings
+        settings: state.settings,
+        savedPages: state.savedPages
       };
       localStorage.setItem('FB_AUTOPOSTER_PERSIST_STATE', JSON.stringify(dataToSave));
     } catch (err) {
       console.warn('LocalStorage save failed:', err);
     }
+  };
+
+  const renderSavedPages = () => {
+    const container = document.getElementById('savedPagesContainer');
+    const countBadge = document.getElementById('savedPagesCount');
+    if (!container) return;
+
+    if (countBadge) countBadge.textContent = `(${state.savedPages.length} Pages)`;
+    container.innerHTML = '';
+
+    if (state.savedPages.length === 0) {
+      container.innerHTML = `<div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:8px 0;">គ្មាន Page ដែលបាន Save នៅឡើយទេ</div>`;
+      return;
+    }
+
+    state.savedPages.forEach((page, index) => {
+      const isCurrentActive = state.settings.pageId === page.pageId;
+      const card = document.createElement('div');
+      card.style.cssText = `display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:8px 10px; border-radius:6px; border:1px solid ${isCurrentActive ? 'var(--fb-secondary)' : 'var(--border-color)'}; font-size:0.8rem;`;
+
+      card.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:2px; overflow:hidden;">
+          <div style="font-weight:700; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">
+            ${page.name} ${isCurrentActive ? '<span style="color:var(--fb-secondary); font-size:0.7rem;">(Active)</span>' : ''}
+          </div>
+          <div style="font-size:0.7rem; color:var(--text-muted);">ID: ${page.pageId}</div>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <button class="btn btn-sm ${isCurrentActive ? 'btn-success' : 'btn-secondary'}" data-action="switch-page" data-index="${index}" style="font-size:0.72rem; padding:3px 8px;">
+            ${isCurrentActive ? '✓ សកម្ម' : '⚡ ប្រើ Page នេះ'}
+          </button>
+          <button class="btn btn-sm btn-danger" data-action="delete-page" data-index="${index}" style="font-size:0.72rem; padding:3px 6px;">
+            🗑️
+          </button>
+        </div>
+      `;
+
+      card.querySelector('[data-action="switch-page"]').addEventListener('click', () => {
+        state.settings.token = page.token;
+        state.settings.pageId = page.pageId;
+        state.settings.useSimulation = false;
+        if (DOM.tokenInput) DOM.tokenInput.value = page.token;
+        if (DOM.pageIdInput) DOM.pageIdInput.value = page.pageId;
+        if (DOM.useSimulationMode) DOM.useSimulationMode.checked = false;
+
+        const customUser = { id: page.pageId, name: page.name, email: 'Page Token Active' };
+        updateFBLoginUI(customUser, [{ id: page.pageId, name: page.name, access_token: page.token }]);
+        saveStateToLocalStorage();
+        renderSavedPages();
+        logMessage(`⚡ បានផ្លាស់ប្តូរទៅកាន់ Page: ${page.name} ដោយជោគជ័យ!`, 'success');
+      });
+
+      card.querySelector('[data-action="delete-page"]').addEventListener('click', () => {
+        if (confirm(`តើអ្នកប្រាកដថាចង់លុប Page ${page.name} ចេញពីបញ្ជី?`)) {
+          state.savedPages.splice(index, 1);
+          saveStateToLocalStorage();
+          renderSavedPages();
+          logMessage(`បានលុប Page ${page.name} ចេញពីបញ្ជី Save`, 'info');
+        }
+      });
+
+      container.appendChild(card);
+    });
   };
 
   const loadStateFromLocalStorage = () => {
@@ -210,6 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (parsed.posts && Array.isArray(parsed.posts)) state.posts = parsed.posts;
         if (parsed.destinations && Array.isArray(parsed.destinations)) state.destinations = parsed.destinations;
         if (parsed.settings) state.settings = { ...state.settings, ...parsed.settings };
+        if (parsed.savedPages && Array.isArray(parsed.savedPages)) state.savedPages = parsed.savedPages;
 
         // Sync DOM inputs from loaded settings
         if (DOM.fbAppIdInput) DOM.fbAppIdInput.value = state.settings.appId || '854470550953066';
@@ -226,6 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (DOM.pageIdInput) DOM.pageIdInput.value = state.settings.pageId || '';
         }
 
+        renderSavedPages();
         return true;
       }
     } catch (err) {
@@ -1359,6 +1426,35 @@ document.addEventListener('DOMContentLoaded', () => {
             logMessage('✅ Access Token configuration saved.', 'success');
             saveStateToLocalStorage();
           });
+      });
+    }
+
+    // ---- Save Page Profile Button ----
+    const btnSavePageProfile = document.getElementById('btnSavePageProfile');
+    if (btnSavePageProfile) {
+      btnSavePageProfile.addEventListener('click', () => {
+        const token = DOM.tokenInput.value.trim();
+        const pageId = DOM.pageIdInput.value.trim();
+
+        if (!token || !pageId) {
+          alert('សូមបញ្ចូល Access Token និង Page ID ឱ្យបានត្រឹមត្រូវ!');
+          return;
+        }
+
+        const pageName = prompt('សូមបញ្ចូលឈ្មោះសម្គាល់ Page នេះ (ឧ. Sokha Fashion Store) ៖', `Page ${pageId.slice(-4)}`);
+        if (!pageName) return;
+
+        // Check if page profile already exists
+        const existingIdx = state.savedPages.findIndex(p => p.pageId === pageId);
+        if (existingIdx >= 0) {
+          state.savedPages[existingIdx] = { name: pageName, pageId, token };
+        } else {
+          state.savedPages.push({ name: pageName, pageId, token });
+        }
+
+        saveStateToLocalStorage();
+        renderSavedPages();
+        logMessage(`💾 បាន Save Page Profile: ${pageName} ចូលក្នុងបញ្ជីដោយជោគជ័យ!`, 'success');
       });
     }
 
