@@ -1508,7 +1508,7 @@ document.addEventListener('DOMContentLoaded', () => {
           logMessage('Facebook Login: សូមពិនិត្យមើល App ID របស់អ្នក ឬ ប្រើ Demo Login!', 'error');
         }
       }, {
-        scope: 'public_profile'
+        scope: 'public_profile,pages_show_list,pages_manage_posts,pages_read_engagement'
       });
     });
 
